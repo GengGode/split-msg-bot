@@ -138,46 +138,31 @@ async def process_forward(message: Message, group_id: int | None):
 
     for msg in msgs:
         print(f'forward sub {msg}')
+
         if type(msg) is not dict:
             msg_type = msg.type
-            if msg_type not in ['image', 'video', 'audio', 'file', 'forward']:
-                continue
-            if msg_type == 'forward':
-                print(f'forward: {msg.data}')
-                id = msg.data['id']
-                for m in msg.data['content']:
-                    await process_forward(m, id)
-            elif msg_type == 'image':
-                #image_url = msg.data['url']
-                #print(f'{group_id} image: {image_url}')
-                #await process_image(msg.data['message'])
-                image_url = msg.data['url']
-                file_name = Path(f'./outs/{shared.current_day}/{group_id}/{ msg.data['file']}')
-                print(f'image {file_name}: {image_url}')
-                await download_file(image_url, file_name)
-            elif msg_type == 'video':
-                video_url = msg.data['url']
-                print(f'{group_id} video: {video_url}')
-                await process_video(msg.data['message'])
+            msg_data = msg.data
         else:
             msg_type = msg['type']
-            if msg_type not in ['image', 'video', 'audio', 'file', 'forward']:
-                continue
-            if msg_type == 'forward':
-                print(f'forward: {msg['data']}')
-                id = msg['data']['id']
-                for m in msg['data']['content']:
-                    await process_forward(m, id)
-            elif msg_type == 'image':
-                image_url = msg['data']['url']
-                file_name = Path(f'./outs/{shared.current_day}/{group_id}/{msg['data']['file']}')
-                print(f'image {file_name}: {image_url}')
-                await download_file(image_url, file_name)
-            elif msg_type == 'video':
-                video_url = msg['data']['url']
-                file_name = Path(f'./outs/{shared.current_day}/{group_id}/{msg['data']['file']}')
-                print(f'video {file_name}: {video_url}')
-                await download_file(video_url, file_name)
+            msg_data = msg['data']
+        if msg_type not in ['image', 'video', 'audio', 'file', 'forward']:
+            continue
+
+        if msg_type == 'forward':
+            print(f'forward: {msg_data}')
+            id = msg_data['id']
+            for m in msg_data['content']:
+                await process_forward(m, id)
+        elif msg_type == 'image':
+            image_url = msg_data['url']
+            file_name = Path(f'./outs/{shared.current_day}/{group_id}/{msg_data['file']}')
+            print(f'image {file_name}: {image_url}')
+            await download_file(image_url, file_name)
+        elif msg_type == 'video':
+            video_url = msg_data['url']
+            file_name = Path(f'./outs/{shared.current_day}/{group_id}/{msg_data['file']}')
+            print(f'video {file_name}: {video_url}')
+            await download_file(video_url, file_name)
 
 async def process_image(message: Message):
     print('process_image')
