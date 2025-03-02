@@ -139,12 +139,7 @@ async def process_forward(message: Message, group_id: int | None):
     for msg in msgs:
         print(f'forward sub {msg}')
 
-        if type(msg) is not dict:
-            msg_type = msg.type
-            msg_data = msg.data
-        else:
-            msg_type = msg['type']
-            msg_data = msg['data']
+        msg_type, msg_data = (msg['type'], msg['data']) if isinstance(msg, dict) else (msg.type, msg.data)
         if msg_type not in ['image', 'video', 'audio', 'file', 'forward']:
             continue
 
