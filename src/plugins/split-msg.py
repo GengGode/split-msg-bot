@@ -89,7 +89,7 @@ async def __message(id,event: MessageEvent):
     
     if day_flag or group_flag or not shared.current_day or not shared.current_group:
         shared.current_day = day_flag
-        current_group = group_flag
+        shared.current_group = group_flag
         print(f'[{group_id}] {message_id} new group: {shared.current_day}/{shared.current_group}')
 
 
