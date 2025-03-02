@@ -51,11 +51,12 @@ class time_grouper:
             # 合并到当前组
             self.current_group_end = new_time  # 更新组结束时间
             return (None, None)
+class shared:
+    current_day = None
+    current_group = None
 
 spliter = on_message()
 grouper = time_grouper()
-global current_day
-global current_group
 
 @spliter.handle()
 async def handle_function(event: MessageEvent):
@@ -86,16 +87,13 @@ async def __message(id,event: MessageEvent):
 
     day_flag, group_flag =  grouper.process(t, message_id)
     
-    global current_day
-    global current_group
-
-    if day_flag or group_flag or not current_day or not current_group:
-        current_day = day_flag
+    if day_flag or group_flag or not shared.current_day or not shared.current_group:
+        shared.current_day = day_flag
         current_group = group_flag
-        print(f'[{group_id}] {message_id} new group: {current_day}/{current_group}')
+        print(f'[{group_id}] {message_id} new group: {shared.current_day}/{shared.current_group}')
 
 
-    out_dir = Path(f'./outs/{current_day}/{current_group}')
+    out_dir = Path(f'./outs/{shared.current_day}/{shared.current_group}')
     if not out_dir.exists():
         out_dir.mkdir(parents=True)
     out_json_file =  out_dir / f'{message_id}.json'
@@ -119,11 +117,10 @@ async def private_message(event: MessageEvent):
 
 async def process_forward(message: Message, group_id: int | None):
     print(f'process_forward {message}')
-    global current_day
 
     if message is list and message[0] is dict and 'id' in message[0].data:
         group_id = message[0].data['id']
-        out_dir = Path(f'./outs/{current_day}/{group_id}')
+        out_dir = Path(f'./outs/{shared.current_day}/{group_id}')
         if not out_dir.exists():
             out_dir.mkdir(parents=True)
         out_json_file =  out_dir / f'{group_id}.json'
@@ -155,7 +152,7 @@ async def process_forward(message: Message, group_id: int | None):
                 #print(f'{group_id} image: {image_url}')
                 #await process_image(msg.data['message'])
                 image_url = msg.data['url']
-                file_name = Path(f'./outs/{current_day}/{group_id}/{ msg.data['file']}')
+                file_name = Path(f'./outs/{shared.current_day}/{group_id}/{ msg.data['file']}')
                 print(f'image {file_name}: {image_url}')
                 await download_file(image_url, file_name)
             elif msg_type == 'video':
@@ -173,19 +170,17 @@ async def process_forward(message: Message, group_id: int | None):
                     await process_forward(m, id)
             elif msg_type == 'image':
                 image_url = msg['data']['url']
-                file_name = Path(f'./outs/{current_day}/{group_id}/{msg['data']['file']}')
+                file_name = Path(f'./outs/{shared.current_day}/{group_id}/{msg['data']['file']}')
                 print(f'image {file_name}: {image_url}')
                 await download_file(image_url, file_name)
             elif msg_type == 'video':
                 video_url = msg['data']['url']
-                file_name = Path(f'./outs/{current_day}/{group_id}/{msg['data']['file']}')
+                file_name = Path(f'./outs/{shared.current_day}/{group_id}/{msg['data']['file']}')
                 print(f'video {file_name}: {video_url}')
                 await download_file(video_url, file_name)
 
 async def process_image(message: Message):
     print('process_image')
-    global current_day
-    global current_group
 
     for msg in message:
         msg_type = msg.type
@@ -195,14 +190,12 @@ async def process_image(message: Message):
             process_forward(msg.data['message'])
         elif msg_type == 'image':
             image_url = msg.data['url']
-            file_name = Path(f'./outs/{current_day}/{current_group}/{msg.data['file']}')
+            file_name = Path(f'./outs/{shared.current_day}/{shared.current_group}/{msg.data['file']}')
             print(f'image {file_name}: {image_url}')
             await download_file(image_url, file_name)
 
 async def process_video(message: Message):
     print('process_video')
-    global current_day
-    global current_group
 
     for msg in message:
         msg_type = msg.type
@@ -212,7 +205,7 @@ async def process_video(message: Message):
             process_forward(msg.data['message'])
         elif msg_type == 'video':
             video_url = msg.data['url']
-            file_name = Path(f'./outs/{current_day}/{current_group}/{msg.data['file']}')
+            file_name = Path(f'./outs/{shared.current_day}/{shared.current_group}/{msg.data['file']}')
             print(f'video {file_name}: {video_url}')
             await download_file(video_url, file_name)
 
