@@ -9,6 +9,7 @@ from nonebot.adapters.onebot.v11 import MessageSegment, MessageEvent, Message
 from nonebot import logger
 from datetime import datetime, timedelta
 from typing import Tuple, Optional
+from nonebot import get_bot
 
 class time_grouper:
     def __init__(self):
@@ -27,7 +28,7 @@ class time_grouper:
         
         # 时间顺序校验
         if self.last_time and new_time <= self.last_time:
-            raise ValueError(f"时间非递增，当前时间：{new_time}，上条时间：{self.last_time}")
+            return (None, None)
         self.last_time = new_time
 
         # 第一条数据处理
@@ -56,7 +57,9 @@ class shared:
     current_group = None
 
 spliter = on_message()
-grouper = time_grouper()
+
+ #dict(int, time_grouper)
+groupers = {}
 
 @spliter.handle()
 async def handle_function(event: MessageEvent):
@@ -84,7 +87,7 @@ async def __message(id,event: MessageEvent):
 
     if message_type not in ['image', 'video', 'audio', 'file', 'forward']:
         return
-
+    grouper = groupers.setdefault(group_id, time_grouper())
     day_flag, group_flag =  grouper.process(t, message_id)
     
     if day_flag or group_flag or not shared.current_day or not shared.current_group:
@@ -146,6 +149,16 @@ async def process_forward(message: Message, group_id: int | None):
         if msg_type == 'forward':
             print(f'forward: {msg_data}')
             id = msg_data['id']
+            # 如果没有content字段，调用获取转发消息接口
+            if 'content' not in msg_data:
+                #msg_data = await get_forward_msg(id)
+                # bot = get_bot()
+                # msg_data = await bot.get_forward_msg(id)
+                        
+                with open('forward.msg', 'a') as f:
+                    f.write(f'forward msg: {id}, {msg_data}\n')
+                print(f'forward msg: {msg_data}')
+                continue
             for m in msg_data['content']:
                 await process_forward(m, id)
         elif msg_type == 'image':
