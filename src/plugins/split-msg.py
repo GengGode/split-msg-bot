@@ -3,6 +3,7 @@ from pathlib import Path
 import os
 import re
 import time
+import nonebot
 from nonebot.rule import is_type, to_me, Rule
 from nonebot.plugin import on_command, on_message, on_type
 from nonebot.adapters.onebot.v11 import MessageSegment, MessageEvent, Message
@@ -61,6 +62,24 @@ spliter = on_message()
  #dict(int, time_grouper)
 groupers = {}
 
+config = nonebot.get_driver().config
+
+data_dir = Path('./data')
+try:
+    data_dir = config.data_dir
+    if not data_dir:
+        data_dir = Path('./data')
+    else:
+        data_dir = Path(data_dir)
+    if not data_dir.exists():
+        data_dir.mkdir(parents=True)
+except Exception as e:
+    data_dir = Path('./data')
+    if not data_dir.exists():
+        data_dir.mkdir(parents=True)
+if not data_dir.is_dir():
+    raise Exception(f'{data_dir} is not a directory')
+
 @spliter.handle()
 async def handle_function(event: MessageEvent):
     if event.message_type == 'group':
@@ -70,7 +89,7 @@ async def handle_function(event: MessageEvent):
 
 async def __message(id,event: MessageEvent):
     group_id = id
-    dir = Path(f'./saves/{group_id}')
+    dir = Path(f'{data_dir}/saves/{group_id}')
     if not dir.exists():
         dir.mkdir(parents=True)
     
@@ -96,7 +115,7 @@ async def __message(id,event: MessageEvent):
         print(f'[{group_id}] {message_id} new group: {shared.current_day}/{shared.current_group}')
 
 
-    out_dir = Path(f'./outs/{shared.current_day}/{shared.current_group}')
+    out_dir = Path(f'{data_dir}/outs/{shared.current_day}/{shared.current_group}')
     if not out_dir.exists():
         out_dir.mkdir(parents=True)
     out_json_file =  out_dir / f'{message_id}.json'
@@ -123,7 +142,7 @@ async def process_forward(message: Message, group_id: int | None):
 
     if message is list and message[0] is dict and 'id' in message[0].data:
         group_id = message[0].data['id']
-        out_dir = Path(f'./outs/{shared.current_day}/{group_id}')
+        out_dir = Path(f'{data_dir}/outs/{shared.current_day}/{group_id}')
         if not out_dir.exists():
             out_dir.mkdir(parents=True)
         out_json_file =  out_dir / f'{group_id}.json'
@@ -163,12 +182,12 @@ async def process_forward(message: Message, group_id: int | None):
                 await process_forward(m, id)
         elif msg_type == 'image':
             image_url = msg_data['url']
-            file_name = Path(f'./outs/{shared.current_day}/{group_id}/{msg_data['file']}')
+            file_name = Path(f'{data_dir}/outs/{shared.current_day}/{group_id}/{msg_data['file']}')
             print(f'image {file_name}: {image_url}')
             await download_file(image_url, file_name)
         elif msg_type == 'video':
             video_url = msg_data['url']
-            file_name = Path(f'./outs/{shared.current_day}/{group_id}/{msg_data['file']}')
+            file_name = Path(f'{data_dir}/outs/{shared.current_day}/{group_id}/{msg_data['file']}')
             print(f'video {file_name}: {video_url}')
             await download_file(video_url, file_name)
 
@@ -183,7 +202,7 @@ async def process_image(message: Message):
             process_forward(msg.data['message'])
         elif msg_type == 'image':
             image_url = msg.data['url']
-            file_name = Path(f'./outs/{shared.current_day}/{shared.current_group}/{msg.data['file']}')
+            file_name = Path(f'{data_dir}/outs/{shared.current_day}/{shared.current_group}/{msg.data['file']}')
             print(f'image {file_name}: {image_url}')
             await download_file(image_url, file_name)
 
@@ -198,7 +217,7 @@ async def process_video(message: Message):
             process_forward(msg.data['message'])
         elif msg_type == 'video':
             video_url = msg.data['url']
-            file_name = Path(f'./outs/{shared.current_day}/{shared.current_group}/{msg.data['file']}')
+            file_name = Path(f'{data_dir}/outs/{shared.current_day}/{shared.current_group}/{msg.data['file']}')
             print(f'video {file_name}: {video_url}')
             await download_file(video_url, file_name)
 
