@@ -36,3 +36,4 @@ RUN pip install --no-cache-dir gunicorn uvicorn[standard] nonebot2 \
 COPY . /app/
 
 CMD ["/start.sh"]
+
