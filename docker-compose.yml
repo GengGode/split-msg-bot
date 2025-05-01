@@ -15,3 +15,33 @@ services:
       HOST: *config-host
       PORT: *config-port
     restart: always
+
+  test:
+    build:
+      context: .
+      target: test_stage
+    env_file:
+      - .env.test
+    environment:
+      ENVIRONMENT: test
+    command: ["pytest"]
+
+  build:
+    build:
+      context: .
+      target: build_stage
+    env_file:
+      - .env.build
+    environment:
+      ENVIRONMENT: build
+    command: ["python", "setup.py", "build"]
+
+  run:
+    build:
+      context: .
+      target: run_stage
+    env_file:
+      - .env.run
+    environment:
+      ENVIRONMENT: run
+    command: ["python", "main.py"]
