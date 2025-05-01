@@ -37,33 +37,3 @@ COPY . /app/
 
 CMD ["/start.sh"]
 
-# Add a new stage to run tests
-FROM python:3.13 as test_stage
-
-WORKDIR /app
-
-COPY . /app
-
-RUN pip install --no-cache-dir pytest
-
-CMD ["pytest"]
-
-# Add a new stage to build the application
-FROM python:3.13 as build_stage
-
-WORKDIR /app
-
-COPY . /app
-
-RUN pip install --no-cache-dir -r requirements.txt
-
-CMD ["python", "setup.py", "build"]
-
-# Add a new stage to run the application
-FROM python:3.13-slim as run_stage
-
-WORKDIR /app
-
-COPY --from=build_stage /app /app
-
-CMD ["python", "main.py"]
