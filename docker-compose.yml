@@ -1,7 +1,7 @@
 version: "3"
 
 x-config-host: &config-host ${HOST:-0.0.0.0}
-x-config-port: &config-port ${PORT:-8080}
+x-config-port: &config-port ${PORT:-10081}
 
 services:
   nonebot:
@@ -15,33 +15,6 @@ services:
       HOST: *config-host
       PORT: *config-port
     restart: always
-
-  test:
-    build:
-      context: .
-      target: test_stage
-    env_file:
-      - .env.test
-    environment:
-      ENVIRONMENT: test
-    command: ["pytest"]
-
-  build:
-    build:
-      context: .
-      target: build_stage
-    env_file:
-      - .env.build
-    environment:
-      ENVIRONMENT: build
-    command: ["python", "setup.py", "build"]
-
-  run:
-    build:
-      context: .
-      target: run_stage
-    env_file:
-      - .env.run
-    environment:
-      ENVIRONMENT: run
-    command: ["python", "main.py"]
+    volumes:
+      - ./data:/app/data
+      
